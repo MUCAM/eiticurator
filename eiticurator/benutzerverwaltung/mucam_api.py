@@ -1,5 +1,7 @@
 from core import *
 
+DEFAULT_DOMAIN = "mucam"
+
 class Controller(object):
   def __init__(self, echo=False):
     self.engine = sa.create_engine(PG, echo=echo)
@@ -40,7 +42,7 @@ class Controller(object):
       emailaddress,
       room,
       einrichtung):
-    konto = Konto(oeinheit=oeinheit, domain="mucam", uid=uid, uname=uname)
+    konto = Konto(oeinheit=oeinheit, domain=DEFAULT_DOMAIN, uid=uid, uname=uname)
     email = Emailadresse(emailadresse=emailaddress)
     benutzer = Benutzer(
         emailadresse=emailaddress,
