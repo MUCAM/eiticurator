@@ -1,11 +1,6 @@
 """
 Kleine Dokumentaton:
-
-
-
 """
-
-
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
@@ -160,6 +155,7 @@ class Benutzer(Base):
       primary_key=True)
   nachname = sa.Column(sa.String, nullable=False) # PR: weitere Bedingungen?
   vorname = sa.Column(sa.String, nullable=False) # PR: weitere Bedingungen?
+  titel = sa.Column(sa.String, nullable=False, unique=False)
   anzeigename = sa.Column(sa.String, nullable=False, unique=True)
   raum = sa.Column(sa.String)
   einrichtung = sa.Column(sa.String , nullable=False)

@@ -9,29 +9,6 @@ class Controller(object):
     Session = orm.sessionmaker(self.engine)
     self.session = Session()
 
-  def addUserUI(self):
-    last_name = raw_input('Nachname: ')
-    first_name = raw_input('Vorname: ')
-    shown_name = raw_input('Anzeigename: ')
-    uid = raw_input('UID: ')
-    uname = raw_input('uname: ')
-    oeinheit = raw_input('Oeinhein [it, mea, iv, fe, socr, psy, vw, bib, fellow]: ')
-    emailaddress = raw_input('eMail-Adresse: ')
-    room = raw_input('Raum: ')
-    einrichtung = raw_input('Einrichtung: ')
-    check = raw_input('Alles korrekt [JA]? ')
-    # -----------------------------------------
-    if check in ['', 'ja', 'Ja', 'JA', 'yes', 'Yes', 'Yes']:
-      self.addUser(last_name,
-          first_name,
-          shown_name,
-          uid,
-          uname,
-          oeinheit,
-          emailaddress,
-          room,
-          einrichtung)
-
   def addUser(self,
       last_name,
       first_name,
@@ -39,10 +16,15 @@ class Controller(object):
       uid,
       uname,
       oeinheit,
+      domain,
       emailaddress,
       room,
       einrichtung):
-    konto = Konto(oeinheit=oeinheit, domain=DEFAULT_DOMAIN, uid=uid, uname=uname)
+    konto = Konto(
+        oeinheit=oeinheit,
+        domain=domain,
+        uid=uid,
+        uname=uname)
     email = Emailadresse(emailadresse=emailaddress)
     benutzer = Benutzer(
         emailadresse=emailaddress,
@@ -53,13 +35,13 @@ class Controller(object):
         einrichtung=einrichtung)
     try:
       self.session.add(email)
-      self.session.add(konto)
       self.session.add(benutzer)
+      self.session.add(konto)
       self.session.commit()
-      print ">>> Angelegt <<<"
+      print "\n>>> %s Angelegt <<<" %(benutzer.anzeigename)
     except Exception, e:
       print e
-      print "rolling back!"
+      print "\n>>> Rollback <<<"
       self.session.rollback()
   
 
