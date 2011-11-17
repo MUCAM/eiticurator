@@ -8,6 +8,7 @@ import datetime as dt
 
 from models import Base
 
+print "benutzerverwaltung"
 
 DB_USER = 'rautenbe'
 PG = 'postgresql://' + DB_USER + '@ama-prod/mucam'
@@ -96,10 +97,10 @@ class Konto(Base):
       ) # PR: der default-Wert wird nicht innerhalb der Datenbank gesetzt!
 
   # many-to-many Konto<->Kontogruppe
-  kontogruppe_objects = orm.relationship(
-      'Kontogruppe',
-      secondary=konto_gruppe_abbildungen,
-      backref='konto_objects')
+#  gruppe_objects = orm.relationship(
+#      'Gruppe',
+#      secondary=konto_gruppe_abbildungen,
+#      backref='konto_objects')
   organisationseinheit_object = orm.relationship(
       'Organisationseinheit',
       backref='konto_objects')
@@ -229,12 +230,6 @@ class Gruppe(Base):
   name = sa.Column(sa.String(20), nullable=False, unique=True)
   gruppentyp = sa.Column(sa.String, nullable=False)
   __mapper_args__ = {'polymorphic_on': gruppentyp}
-
-  konto_objects = orm.relationship(
-      'Konto',
-      backref='gruppe_objects'
-      )
-
 
 
 class Verteiler(Gruppe):
