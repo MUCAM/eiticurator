@@ -6,25 +6,45 @@ import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
 import datetime as dt
 
+from models import Base
+
+
 DB_USER = 'rautenbe'
 PG = 'postgresql://' + DB_USER + '@ama-prod/mucam'
 PG_SCHEMA = 'sandkasten'
 TB_PREFIX = PG_SCHEMA + '.'
 
-Base = declarative_base()
 
-konto_kontogruppe_abbildungen = sa.Table(
-    'konto_kontogruppe_abbilgungen',
+konto_gruppe_abbildungen = sa.Table(
+    'konto_gruppe_abbildungen',
     Base.metadata,
     sa.Column(
       'uid',
       sa.Integer,
       sa.ForeignKey(TB_PREFIX + 'konten.uid')),
     sa.Column(
-      'kgid',
+      'gid',
       sa.Integer,
-      sa.ForeignKey(TB_PREFIX + 'kontogruppen.kgid')),
-    sa.PrimaryKeyConstraint('uid', 'kgid'),
+      sa.ForeignKey(TB_PREFIX + 'gruppen.gid')),
+    sa.PrimaryKeyConstraint('uid', 'gid'),
+    schema = PG_SCHEMA
+    )
+
+konto_emailadresse_abbildungen = sa.Table(
+    'konto_emailadresse_abbildungen',
+    Base.metadata,
+    sa.Column(
+      'uid',
+      sa.Integer,
+      sa.ForeignKey (TB_PREFIX + 'konten.uid'),
+      unique=True
+      ),
+    sa.Column(
+      'emailadresse',
+      sa.String,
+      sa.ForeignKey (TB_PREFIX + 'emailadressen.emailadresse')
+      ),
+    sa.PrimaryKeyConstraint('uid', 'emailadresse'),
     schema = PG_SCHEMA
     )
 
@@ -38,7 +58,7 @@ class Domain(Base):
       {'schema': PG_SCHEMA})
 
   domain = sa.Column(sa.String, primary_key=True)
-  
+  beschreibung = sa.Column(sa.Text)
 
 class Organisationseinheit(Base):
   __tablename__ = 'organisationseinheiten'
@@ -74,14 +94,23 @@ class Konto(Base):
       default=dt.datetime.now(),
       nullable=False
       ) # PR: der default-Wert wird nicht innerhalb der Datenbank gesetzt!
+
   # many-to-many Konto<->Kontogruppe
-  kontogruppen = orm.relationship(
+  kontogruppe_objects = orm.relationship(
       'Kontogruppe',
-      secondary=konto_kontogruppe_abbildungen,
-      backref='konten')
-  organisationseinheit = orm.relationship(
+      secondary=konto_gruppe_abbildungen,
+      backref='konto_objects')
+  organisationseinheit_object = orm.relationship(
       'Organisationseinheit',
-      backref='konten')
+      backref='konto_objects')
+  emailadresse_objects = orm.relationship(
+      'Emailadresse',
+      backref='konto_object'
+      )
+  funktionskonto_object = orm.relationship(
+      'Funktionskonto',
+      backref='konto_object'
+      )
 
 
 class Funktionskategorie(Base):
@@ -116,36 +145,47 @@ class Emailadresse(Base):
       {'schema': PG_SCHEMA}
       )
   emailadresse = sa.Column(sa.String, primary_key=True)
+  emailtyp = sa.Column(sa.String, nullable=False)
   extern_erreichbar = sa.Column(sa.Boolean , nullable=False, default=False)
+  uid = sa.Column(sa.ForeignKey(TB_PREFIX + 'konten.uid'))
+  __mapper_args__ = {'polymorphic_on': emailtyp}
 
 
-class VerteilerEmailadresse(Base):
+class VerteilerEmailadresse(Emailadresse):
   __tablename__ = 'verteiler_emailadressen'
+  __mapper_args__ = {'polymorphic_identity': 'verteiler'}
   __table_args__ = (
       {'schema': PG_SCHEMA}
       )
   emailadresse = sa.Column(
-      sa.String,
       sa.ForeignKey(TB_PREFIX + 'emailadressen.emailadresse'),
       primary_key=True)
 
+  emailadresse_object = orm.relationship(
+      'Emailadresse',
+      backref='verteiler_emailadresse_object'
+      )
 
-class KontoEmailadresse(Base):
-  __tablename__ = 'konto_emailadressen'
+
+class AliasEmailadresse(Emailadresse):
+  __tablename__ = 'alias_emailadressen'
   __table_args__ = (
       {'schema': PG_SCHEMA}
       )
-  emailadresse = sa.Column(
-      sa.String,
+  alias_emailadresse = sa.Column(
       sa.ForeignKey(TB_PREFIX + 'emailadressen.emailadresse'),
       primary_key=True)
-  uid = sa.Column(
-      sa.Integer,
-      sa.ForeignKey(TB_PREFIX + 'konten.uid'))
+  real_emailadresse = sa.Column(
+      sa.ForeignKey(TB_PREFIX + 'emailadressen.emailadresse'),
+      nullable=False)
+  __mapper_args__ = {
+      'polymorphic_identity': 'alias',
+      'inherit_condition':alias_emailadresse==Emailadresse.emailadresse}
 
 
-class Benutzer(Base):
+class Benutzer(Emailadresse):
   __tablename__ = 'benutzer'
+  __mapper_args__ = {'polymorphic_identity': 'benutzer'}
   __table_args__ = (
       {'schema': PG_SCHEMA}
       )
@@ -160,9 +200,15 @@ class Benutzer(Base):
   raum = sa.Column(sa.String)
   einrichtung = sa.Column(sa.String , nullable=False)
 
+  emailadresse_object = orm.relationship(
+      'Emailadresse',
+      backref='benutzer_object'
+      )
 
-class Funktionsbenutzer(Base):
+
+class Funktionsbenutzer(Emailadresse):
   __tablename__ = 'funktionsbenutzer'
+  __mapper_args__ = {'polymorphic_identity': 'funktionsbenutzer'}
   __table_args__ = (
       {'schema': PG_SCHEMA}
       )
@@ -173,13 +219,41 @@ class Funktionsbenutzer(Base):
   name = sa.Column(sa.String, unique=True, nullable=False)
 
 
-class Kontogruppe(Base):
-  __tablename__ = 'kontogruppen'
+class Gruppe(Base):
+  __tablename__ = 'gruppen'
   __table_args__ = (
+      sa.PrimaryKeyConstraint('gid', 'name'),
       {'schema': PG_SCHEMA}
       )
-  kgid = sa.Column(sa.Integer, primary_key=True) # PR: weitere Bedingungen?
-  name = sa.Column(sa.String(20) , nullable=False)
+  gid = sa.Column(sa.Integer, nullable=False, unique=True)
+  name = sa.Column(sa.String(20), nullable=False, unique=True)
+  gruppentyp = sa.Column(sa.String, nullable=False)
+  __mapper_args__ = {'polymorphic_on': gruppentyp}
+
+  konto_objects = orm.relationship(
+      'Konto',
+      backref='gruppe_objects'
+      )
+
+
+
+class Verteiler(Gruppe):
+  __tablename__ = 'verteiler'
+  __table_args__ = (
+      sa.PrimaryKeyConstraint('gid', 'name'),
+      sa.ForeignKeyConstraint(
+        ['gid', 'name'],
+        [TB_PREFIX + 'gruppen.gid', TB_PREFIX + 'gruppen.name']
+        ),
+      sa.ForeignKeyConstraint(
+        ['emailadresse'],
+        [TB_PREFIX + 'verteiler_emailadressen.emailadresse']),
+      {'schema': PG_SCHEMA}
+      )
+  gid = sa.Column(sa.Integer)
+  name = sa.Column(sa.String(20))
+  emailadresse = sa.Column(sa.String, nullable=False)
+  __mapper_args__ = {'polymorphic_identity': 'verteiler'}
 
 
 if __name__ == '__main__':
