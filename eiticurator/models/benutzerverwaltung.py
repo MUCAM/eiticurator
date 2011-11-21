@@ -10,13 +10,12 @@ from models import Base
 
 print "benutzerverwaltung"
 
-ZOMBIE_MONATE = 3
 
 DB_USER = 'rautenbe'
 PG = 'postgresql://' + DB_USER + '@ama-prod/mucam'
 PG_SCHEMA = 'sandkasten'
 TB_PREFIX = PG_SCHEMA + '.'
-
+ZOMBIE_MONATE = 3
 
 konto_gruppe_abbildungen = sa.Table(
     'konto_gruppe_abbildungen',
@@ -90,8 +89,8 @@ class Konto(Base):
   passwort_unix = sa.Column(sa.String, nullable=False, default="***")
   passwort_pam = sa.Column(sa.String, nullable=False, default="***")
   aktiviert = sa.Column(sa.Boolean, nullable=False, default=False)
-  oeinheit = sa.Column(sa.String)
-  domain = sa.Column(sa.String)
+  oeinheit = sa.Column(sa.String, nullable=False)
+  domain = sa.Column(sa.String, nullable=False)
   anlegedatum = sa.Column(
       sa.DateTime,
       default=dt.datetime.now(),
@@ -120,15 +119,6 @@ class Konto(Base):
       )
 
 
-class Funktionskategorie(Base):
-  __tablename__ = 'funktionskategorien'
-  __table_args__ = (
-      {'schema': PG_SCHEMA}
-      )
-
-  funktionskategorie = sa.Column(sa.String, primary_key=True)
-
-
 class Funktionskonto(Base):
   __tablename__ = 'funktionskonten'
   __table_args__ = (
@@ -141,9 +131,6 @@ class Funktionskonto(Base):
       primary_key=True,
       )
   anzeigename = sa.Column(sa.String, nullable=False)
-  funktionskategorie = sa.Column(
-      sa.String,
-      sa.ForeignKey(TB_PREFIX + 'funktionskategorien.funktionskategorie'))
 
   
 class Emailadresse(Base):
@@ -203,7 +190,7 @@ class Benutzer(Emailadresse):
   vorname = sa.Column(sa.String, nullable=False) # PR: weitere Bedingungen?
   titel = sa.Column(sa.String, nullable=False, unique=False)
   anzeigename = sa.Column(sa.String, nullable=False, unique=True)
-  raum = sa.Column(sa.String)
+  raum = sa.Column(sa.String, nullable=False)
   einrichtung = sa.Column(sa.String , nullable=False)
   since = sa.Column(sa.DateTime, nullable=False)
   until = sa.Column(sa.DateTime, nullable=False)
