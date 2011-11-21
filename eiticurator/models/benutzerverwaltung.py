@@ -10,6 +10,8 @@ from models import Base
 
 print "benutzerverwaltung"
 
+ZOMBIE_MONATE = 3
+
 DB_USER = 'rautenbe'
 PG = 'postgresql://' + DB_USER + '@ama-prod/mucam'
 PG_SCHEMA = 'sandkasten'
@@ -59,7 +61,7 @@ class Domain(Base):
       {'schema': PG_SCHEMA})
 
   domain = sa.Column(sa.String, primary_key=True)
-  beschreibung = sa.Column(sa.Text)
+  beschreibung = sa.Column(sa.Text, nullable=False, default='')
 
 class Organisationseinheit(Base):
   __tablename__ = 'organisationseinheiten'
@@ -95,6 +97,9 @@ class Konto(Base):
       default=dt.datetime.now(),
       nullable=False
       ) # PR: der default-Wert wird nicht innerhalb der Datenbank gesetzt!
+  beschreibung = sa.Column(
+      sa.Text, nullable=False, default='')
+  zombie_monate = sa.Column(sa.Integer, nullable=False, default=ZOMBIE_MONATE)
 
   # many-to-many Konto<->Kontogruppe
 #  gruppe_objects = orm.relationship(
@@ -106,6 +111,7 @@ class Konto(Base):
       backref='konto_objects')
   emailadresse_objects = orm.relationship(
       'Emailadresse',
+      secondary=konto_emailadresse_abbildungen,
       backref='konto_object'
       )
   funktionskonto_object = orm.relationship(
@@ -148,7 +154,6 @@ class Emailadresse(Base):
   emailadresse = sa.Column(sa.String, primary_key=True)
   emailtyp = sa.Column(sa.String, nullable=False)
   extern_erreichbar = sa.Column(sa.Boolean , nullable=False, default=False)
-  uid = sa.Column(sa.ForeignKey(TB_PREFIX + 'konten.uid'))
   __mapper_args__ = {'polymorphic_on': emailtyp}
 
 
@@ -168,8 +173,8 @@ class VerteilerEmailadresse(Emailadresse):
       )
 
 
-class AliasEmailadresse(Emailadresse):
-  __tablename__ = 'alias_emailadressen'
+class EmailadresseAlias(Emailadresse):
+  __tablename__ = 'emailadressen_alias'
   __table_args__ = (
       {'schema': PG_SCHEMA}
       )
@@ -200,6 +205,8 @@ class Benutzer(Emailadresse):
   anzeigename = sa.Column(sa.String, nullable=False, unique=True)
   raum = sa.Column(sa.String)
   einrichtung = sa.Column(sa.String , nullable=False)
+  since = sa.Column(sa.DateTime, nullable=False)
+  until = sa.Column(sa.DateTime, nullable=False)
 
   emailadresse_object = orm.relationship(
       'Emailadresse',
@@ -207,27 +214,14 @@ class Benutzer(Emailadresse):
       )
 
 
-class Funktionsbenutzer(Emailadresse):
-  __tablename__ = 'funktionsbenutzer'
-  __mapper_args__ = {'polymorphic_identity': 'funktionsbenutzer'}
-  __table_args__ = (
-      {'schema': PG_SCHEMA}
-      )
-  emailadresse = sa.Column(
-      sa.String,
-      sa.ForeignKey(TB_PREFIX + 'emailadressen.emailadresse'),
-      primary_key=True,)
-  name = sa.Column(sa.String, unique=True, nullable=False)
-
-
 class Gruppe(Base):
   __tablename__ = 'gruppen'
   __table_args__ = (
-      sa.PrimaryKeyConstraint('gid', 'name'),
+      sa.PrimaryKeyConstraint('gid', 'gname'),
       {'schema': PG_SCHEMA}
       )
   gid = sa.Column(sa.Integer, nullable=False, unique=True)
-  name = sa.Column(sa.String(20), nullable=False, unique=True)
+  gname = sa.Column(sa.String(20), nullable=False, unique=True)
   gruppentyp = sa.Column(sa.String, nullable=False)
   __mapper_args__ = {'polymorphic_on': gruppentyp}
 
@@ -235,10 +229,10 @@ class Gruppe(Base):
 class Verteiler(Gruppe):
   __tablename__ = 'verteiler'
   __table_args__ = (
-      sa.PrimaryKeyConstraint('gid', 'name'),
+      sa.PrimaryKeyConstraint('gid', 'gname'),
       sa.ForeignKeyConstraint(
-        ['gid', 'name'],
-        [TB_PREFIX + 'gruppen.gid', TB_PREFIX + 'gruppen.name']
+        ['gid', 'gname'],
+        [TB_PREFIX + 'gruppen.gid', TB_PREFIX + 'gruppen.gname']
         ),
       sa.ForeignKeyConstraint(
         ['emailadresse'],
@@ -246,8 +240,9 @@ class Verteiler(Gruppe):
       {'schema': PG_SCHEMA}
       )
   gid = sa.Column(sa.Integer)
-  name = sa.Column(sa.String(20))
+  gname = sa.Column(sa.String(20))
   emailadresse = sa.Column(sa.String, nullable=False)
+  beschreibung = sa.Column(sa.Text, nullable=False, default='')
   __mapper_args__ = {'polymorphic_identity': 'verteiler'}
 
 
