@@ -1,36 +1,21 @@
 """
 Kleine Dokumentaton:
 """
+
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
 import datetime as dt
 
-from models import Base
+from eiticurator import Base, DBSession
 
 print "benutzerverwaltung"
-
 
 DB_USER = 'rautenbe'
 PG = 'postgresql://' + DB_USER + '@ama-prod/mucam'
 PG_SCHEMA = 'sandkasten'
 TB_PREFIX = PG_SCHEMA + '.'
 ZOMBIE_MONATE = 3
-
-konto_gruppe_abbildungen = sa.Table(
-    'konto_gruppe_abbildungen',
-    Base.metadata,
-    sa.Column(
-      'uid',
-      sa.Integer,
-      sa.ForeignKey(TB_PREFIX + 'konten.uid')),
-    sa.Column(
-      'gid',
-      sa.Integer,
-      sa.ForeignKey(TB_PREFIX + 'gruppen.gid')),
-    sa.PrimaryKeyConstraint('uid', 'gid'),
-    schema = PG_SCHEMA
-    )
 
 konto_emailadresse_abbildungen = sa.Table(
     'konto_emailadresse_abbildungen',
@@ -42,14 +27,14 @@ konto_emailadresse_abbildungen = sa.Table(
       unique=True
       ),
     sa.Column(
-      'emailadresse',
-      sa.String,
-      sa.ForeignKey (TB_PREFIX + 'emailadressen.emailadresse')
+      'eid',
+      sa.Integer,
+      sa.ForeignKey (TB_PREFIX + 'emailadressen.eid'),
+      unique=True
       ),
-    sa.PrimaryKeyConstraint('uid', 'emailadresse'),
+    sa.PrimaryKeyConstraint('uid', 'eid'),
     schema = PG_SCHEMA
     )
-
 
 class Domain(Base):
   """
@@ -61,6 +46,7 @@ class Domain(Base):
 
   domain = sa.Column(sa.String, primary_key=True)
   beschreibung = sa.Column(sa.Text, nullable=False, default='')
+
 
 class Organisationseinheit(Base):
   __tablename__ = 'organisationseinheiten'
@@ -101,10 +87,6 @@ class Konto(Base):
   zombie_monate = sa.Column(sa.Integer, nullable=False, default=ZOMBIE_MONATE)
 
   # many-to-many Konto<->Kontogruppe
-  gruppe_objects = orm.relationship(
-      'Gruppe',
-      secondary=konto_gruppe_abbildungen,
-      backref='konto_objects')
   organisationseinheit_object = orm.relationship(
       'Organisationseinheit',
       backref='konto_objects')
@@ -139,26 +121,31 @@ class Emailadresse(Base):
   __table_args__ = (
       {'schema': PG_SCHEMA}
       )
-  emailadresse = sa.Column(sa.String, primary_key=True)
+  eid = sa.Column(sa.Integer, primary_key=True)
+  emailadresse = sa.Column(sa.String, unique=True)
   emailtyp = sa.Column(sa.String, nullable=False)
   extern_erreichbar = sa.Column(sa.Boolean , nullable=False, default=False)
   __mapper_args__ = {'polymorphic_on': emailtyp}
 
 
-class VerteilerEmailadresse(Emailadresse):
-  __tablename__ = 'verteiler_emailadressen'
+class Verteiler(Emailadresse):
+  __tablename__ = 'verteiler'
   __mapper_args__ = {'polymorphic_identity': 'verteiler'}
   __table_args__ = (
+      sa.ForeignKeyConstraint(
+        ['oeinheit', 'domain'],
+        [TB_PREFIX + 'organisationseinheiten.oeinheit',
+        TB_PREFIX + 'organisationseinheiten.domain']
+        ),
       {'schema': PG_SCHEMA}
       )
-  emailadresse = sa.Column(
-      sa.ForeignKey(TB_PREFIX + 'emailadressen.emailadresse'),
+  eid = sa.Column(
+      sa.ForeignKey(TB_PREFIX + 'emailadressen.eid'),
       primary_key=True)
-
-  emailadresse_object = orm.relationship(
-      'Emailadresse',
-      backref='verteiler_emailadresse_object'
-      )
+  oeinheit = sa.Column(sa.String, nullable=False)
+  domain = sa.Column(sa.String, nullable=False)
+  gname = sa.Column(sa.Text)
+  gid = sa.Column(sa.Integer)
 
 
 class EmailadresseAlias(Emailadresse):
@@ -166,34 +153,38 @@ class EmailadresseAlias(Emailadresse):
   __table_args__ = (
       {'schema': PG_SCHEMA}
       )
-  emailadresse = sa.Column(
-      sa.String,
-      sa.ForeignKey(TB_PREFIX + 'emailadressen.emailadresse'),
+  eid = sa.Column(
+      sa.Integer,
+      sa.ForeignKey(TB_PREFIX + 'emailadressen.eid'),
       primary_key=True)
-  real_emailadresse = sa.Column(
-      sa.ForeignKey(TB_PREFIX + 'emailadressen.emailadresse'),
+  referenz_eid = sa.Column(
+      sa.ForeignKey(TB_PREFIX + 'emailadressen.eid'),
       nullable=False)
   __mapper_args__ = {
       'polymorphic_identity': 'alias',
-      'inherit_condition':Emailadresse.emailadresse==emailadresse}
+      'inherit_condition':Emailadresse.eid==eid}
 
 
 class Benutzer(Emailadresse):
   __tablename__ = 'benutzer'
-  __mapper_args__ = {'polymorphic_identity': 'benutzer'}
+  __mapper_args__ = {'polymorphic_identity': 'primaer'}
   __table_args__ = (
       {'schema': PG_SCHEMA}
       )
-  emailadresse = sa.Column(
-      sa.String,
-      sa.ForeignKey(TB_PREFIX + 'emailadressen.emailadresse'),
+  eid = sa.Column(
+      sa.Integer,
+      sa.ForeignKey(TB_PREFIX + 'emailadressen.eid'),
       primary_key=True)
   nachname = sa.Column(sa.String, nullable=False) # PR: weitere Bedingungen?
   vorname = sa.Column(sa.String, nullable=False) # PR: weitere Bedingungen?
-  titel = sa.Column(sa.String, nullable=False, unique=False, default="")
-  anzeigename = sa.Column(sa.String, nullable=False, unique=True)
+  titel = sa.Column(sa.String, nullable=False, default="")
+  anzeigename = sa.Column(sa.String, nullable=False)
   raum = sa.Column(sa.String, nullable=False)
+  telefon = sa.Column(sa.String, nullable=False, default="")
+  fax = sa.Column(sa.String, nullable=False, default="")
   einrichtung = sa.Column(sa.String , nullable=False)
+  abteilung = sa.Column(sa.Text, nullable=False, default='')
+  funktion = sa.Column(sa.Text, nullable=False, default='')
   since = sa.Column(sa.DateTime, nullable=False)
   until = sa.Column(sa.DateTime, nullable=False)
 
@@ -203,47 +194,9 @@ class Benutzer(Emailadresse):
       )
 
 
-class Gruppe(Base):
-  __tablename__ = 'gruppen'
-  __table_args__ = (
-      sa.PrimaryKeyConstraint('gid', 'gname'),
-      sa.ForeignKeyConstraint(
-        ['oeinheit', 'domain'],
-        [TB_PREFIX + 'organisationseinheiten.oeinheit',
-        TB_PREFIX + 'organisationseinheiten.domain']
-        ),
-      {'schema': PG_SCHEMA}
-      )
-  gid = sa.Column(sa.Integer, nullable=False, unique=True)
-  gname = sa.Column(sa.String(20), nullable=False, unique=True)
-  gruppentyp = sa.Column(sa.String, nullable=False)
-  beschreibung = sa.Column(sa.Text, nullable=False, default='')
-  oeinheit = sa.Column(sa.String, nullable=False)
-  domain = sa.Column(sa.String, nullable=False)
-  __mapper_args__ = {'polymorphic_on': gruppentyp}
-
-
-class Verteiler(Gruppe):
-  __tablename__ = 'verteiler'
-  __table_args__ = (
-      sa.PrimaryKeyConstraint('gid', 'gname'),
-      sa.ForeignKeyConstraint(
-        ['gid', 'gname'],
-        [TB_PREFIX + 'gruppen.gid', TB_PREFIX + 'gruppen.gname']
-        ),
-      sa.ForeignKeyConstraint(
-        ['emailadresse'],
-        [TB_PREFIX + 'verteiler_emailadressen.emailadresse']),
-      {'schema': PG_SCHEMA}
-      )
-  gid = sa.Column(sa.Integer)
-  gname = sa.Column(sa.String(20))
-  emailadresse = sa.Column(sa.String, nullable=False)
-  __mapper_args__ = {'polymorphic_identity': 'verteiler'}
-
-
 if __name__ == '__main__':
   engine = sa.create_engine(PG, echo=True)
   Base.metadata.create_all(engine)
   Session = orm.sessionmaker(engine)
+  #Session = DBSession()
   session = Session()
