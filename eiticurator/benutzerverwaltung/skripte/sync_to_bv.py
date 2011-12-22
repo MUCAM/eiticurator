@@ -16,10 +16,13 @@ Base_ama = declarative_base()
 Base_ama.metadata.bind = engine_ama
 
 class SyncUser(Base_ama):
-  __tablename__ = "einmalsync"
-  __table_args__ = {
+  __tablename__ = "einmalsync_export"
+  __table_args__ = (
+      sa.PrimaryKeyConstraint('id', 'id'),
+      {
       'autoload': True,
-      'schema': "_activedirectory"}
+      'schema': "_activedirectory",
+      })
 
 ####################
 # Benutzerverwaltung
@@ -33,7 +36,7 @@ if __name__ == '__main__':
   Session_ama = orm.sessionmaker(engine_ama)
   session_ama = Session_ama()
   all_users = session_ama.query(SyncUser).all()
-  
+ 
   # schreibe benutzerverwaltung
   engine = sa.create_engine(PG, echo=True)
   Base.metadata.create_all(engine)
@@ -41,21 +44,47 @@ if __name__ == '__main__':
   #Session = DBSession()
   session = Session()
 
+  # anlegen: organisationseinheiten und domains
+  """
+  d = Domain (domain = "MUCAM", beschreibung = "")
+  session.add (d)
+  session.commit()
+  oes = ['MPDL', "MEA", "MPISOC"]
+  for oe in oes:
+    session.add(Organisationseinheit (
+        domain = "MUCAM", oeinheit = oe))
+  session.commit()
+  """
   
   for user in all_users:
+    print user
     u = Benutzer(
         nachname = user.familyname,
         vorname = user.givenname,
         titel = user.title_name,
         anzeigename = user.givenname + " " + user.familyname,
         raum = user.room_number or '',
+        telefon = user.phone_number or '',
+        fax = user.fax_number or '',
         einrichtung = user.institute,
         abteilung = user.department,
         funktion = '',
-        since = user.since,
-        until = user.until,
+        von = user.since,
+        bis = user.until,
         emailadresse = user.email
         )
     session.add(u)
+    k = Konto(
+      uid = user.id,
+      uname = user.user_name,
+      passwort_unix = "",
+      passwort_pam = user.password,
+      aktiviert = True,
+      oeinheit = user.institute,
+      domain = 'MUCAM',
+      anlegedatum = user.creation_time,
+      beschreibung = "",
+      zombie_monate = 3 * int(u.einrichtung=="MPISOC")
+      )
+    u.konto_objekt = k
   session.commit()
-

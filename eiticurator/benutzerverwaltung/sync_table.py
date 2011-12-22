@@ -2,14 +2,14 @@ import sqlalchemy as sa
 import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
 
-PG_ama = 'postgresql://postgres@10.1.1.42/amalie'
-engine_ama = sa.create_engine(PG, echo=True)
+PG = 'postgresql://postgres@10.1.1.42/amalie'
+engine = sa.create_engine(PG, echo=True)
 
-Base_ama = declarative_base()
-Base_ama.metadata.bind = engine
+Base = declarative_base()
+Base.metadata.bind = engine
 
-class SyncUser(Base_ama):
-  __tablename__ = "einmalsync"
+class SyncUser(Base):
+  __tablename__ = "einmalsync_export"
   __table_args__ = {
       'autoload': True,
       'schema': "_activedirectory"}

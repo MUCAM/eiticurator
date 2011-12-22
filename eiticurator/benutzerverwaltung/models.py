@@ -13,7 +13,7 @@ print "benutzerverwaltung"
 
 DB_USER = 'rautenbe'
 PG = 'postgresql://' + DB_USER + '@ama-prod/mucam'
-PG_SCHEMA = 'sandkasten'
+PG_SCHEMA = 'it_accounts'
 TB_PREFIX = PG_SCHEMA + '.'
 ZOMBIE_MONATE = 3
 
@@ -85,6 +85,8 @@ class Konto(Base):
   beschreibung = sa.Column(
       sa.Text, nullable=False, default='')
   zombie_monate = sa.Column(sa.Integer, nullable=False, default=ZOMBIE_MONATE)
+  bearbeitet = sa.Column(sa.DateTime, nullable=False,
+      default=dt.datetime.now())
 
   # many-to-many Konto<->Kontogruppe
   organisationseinheit_object = orm.relationship(
@@ -185,8 +187,10 @@ class Benutzer(Emailadresse):
   einrichtung = sa.Column(sa.String , nullable=False)
   abteilung = sa.Column(sa.Text, nullable=False, default='')
   funktion = sa.Column(sa.Text, nullable=False, default='')
-  since = sa.Column(sa.DateTime, nullable=False)
-  until = sa.Column(sa.DateTime, nullable=False)
+  von = sa.Column(sa.DateTime, nullable=False)
+  bis = sa.Column(sa.DateTime, nullable=False)
+  bearbeitet = sa.Column(sa.DateTime, nullable=False,
+      default=dt.datetime.now())
 
   emailadresse_object = orm.relationship(
       'Emailadresse',
