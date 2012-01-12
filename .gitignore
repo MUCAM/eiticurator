@@ -3,3 +3,4 @@
 sandkasten/*
 .gitignore
 *sqlite
+doc/build

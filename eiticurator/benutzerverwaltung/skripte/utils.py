@@ -4,31 +4,17 @@ from sqlalchemy.ext.declarative import declarative_base
 import datetime as dt
 
 from eiticurator import Base, DBSession
+from eiticurator.benutzerverwaltung.models import *
 
-############
-# einmalsync
-############
+DB_USER = 'rautenbe'
 
-PG_ama = 'postgresql://postgres@10.1.1.42/amalie'
-engine_ama = sa.create_engine(PG_ama, echo=True)
-
-Base_ama = declarative_base()
-Base_ama.metadata.bind = engine_ama
-
-class SyncUser(Base_ama):
-  __tablename__ = "einmalsync_export"
-  __table_args__ = (
-      sa.PrimaryKeyConstraint('id', 'id'),
-      {
-      'autoload': True,
-      'schema': "_activedirectory",
-      })
+PG = 'postgresql://' + DB_USER + '@ama-prod/mucam'
+engine = sa.create_engine(PG, echo=True)
 
 ####################
 # Benutzerverwaltung
 ####################
 
-from eiticurator.benutzerverwaltung.models import *
 
 
 if __name__ == '__main__':

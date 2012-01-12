@@ -114,7 +114,6 @@ class Funktionskonto(Base):
       sa.ForeignKey(TB_PREFIX + 'konten.uid'),
       primary_key=True,
       )
-  anzeigename = sa.Column(sa.String, nullable=False)
   passwort_plain = sa.Column(sa.String, nullable=False, default='')
 
   
@@ -180,7 +179,6 @@ class Benutzer(Emailadresse):
   nachname = sa.Column(sa.String, nullable=False) # PR: weitere Bedingungen?
   vorname = sa.Column(sa.String, nullable=False) # PR: weitere Bedingungen?
   titel = sa.Column(sa.String, nullable=False, default="")
-  anzeigename = sa.Column(sa.String, nullable=False)
   raum = sa.Column(sa.String, nullable=False)
   telefon = sa.Column(sa.String, nullable=False, default="")
   fax = sa.Column(sa.String, nullable=False, default="")
