@@ -7,15 +7,16 @@ import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
 import datetime as dt
 
-from eiticurator import Base, DBSession
+from eiticurator import config, Base, DBSession
 
-print "benutzerverwaltung"
+PG_SCHEMA = config['benutzerverwaltung.schema']
 
-DB_USER = 'rautenbe'
-PG = 'postgresql://' + DB_USER + '@ama-prod/mucam'
-PG_SCHEMA = 'it_accounts'
-TB_PREFIX = PG_SCHEMA + '.'
-ZOMBIE_MONATE = 3
+if PG_SCHEMA == '':
+  PG_SCHEMA = None
+  TB_PREFIX = ""
+else:
+  TB_PREFIX = PG_SCHEMA + '.' # 'TB' = 'table' 
+
 
 konto_emailadresse_abbildungen = sa.Table(
     'konto_emailadresse_abbildungen',
@@ -36,10 +37,8 @@ konto_emailadresse_abbildungen = sa.Table(
     schema = PG_SCHEMA
     )
 
+
 class Domain(Base):
-  """
-  Domain macht das und das
-  """
   __tablename__ = 'domains'
   __table_args__ = (
       {'schema': PG_SCHEMA})
@@ -84,7 +83,7 @@ class Konto(Base):
       ) # PR: der default-Wert wird nicht innerhalb der Datenbank gesetzt!
   beschreibung = sa.Column(
       sa.Text, nullable=False, default='')
-  zombie_monate = sa.Column(sa.Integer, nullable=False, default=ZOMBIE_MONATE)
+  zombie_monate = sa.Column(sa.Integer, nullable=False, default=0)
   bearbeitet = sa.Column(sa.DateTime, nullable=False,
       default=dt.datetime.now())
 
@@ -195,6 +194,15 @@ class Benutzer(Emailadresse):
       backref='benutzer_object'
       )
 
+bv_objects = [
+    Benutzer,
+    Domain,
+    Emailadresse,
+    EmailadresseAlias,
+    Funktionskonto,
+    Konto,
+    Verteiler,
+    Organisationseinheit]
 
 if __name__ == '__main__':
   engine = sa.create_engine(PG, echo=True)
