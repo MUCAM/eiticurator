@@ -1,4 +1,4 @@
-SET search_path TO sandkasten_3;
+SET search_path TO it_accounts;
 
 CREATE OR REPLACE VIEW info_benutzer AS
   SELECT
