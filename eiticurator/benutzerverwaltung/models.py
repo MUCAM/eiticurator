@@ -1,13 +1,15 @@
 """
 Kleine Dokumentaton:
 """
-
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.associationproxy import association_proxy
 import datetime as dt
 
-from eiticurator import config, Base, DBSession
+from eiticurator import config
+
+Base = declarative_base()
 
 PG_SCHEMA = config['benutzerverwaltung.schema']
 
@@ -122,10 +124,19 @@ class Emailadresse(Base):
       {'schema': PG_SCHEMA}
       )
   eid = sa.Column(sa.Integer, primary_key=True)
-  emailadresse = sa.Column(sa.String, unique=True)
+  emailadresse = sa.Column(sa.String, unique=True, nullable=False)
   emailtyp = sa.Column(sa.String, nullable=False)
   extern_erreichbar = sa.Column(sa.Boolean , nullable=False, default=False)
   __mapper_args__ = {'polymorphic_on': emailtyp}
+
+  emailadresse_alias_objects = orm.relationship(
+      'EmailadresseAlias',
+      primaryjoin='Emailadresse.eid==EmailadresseAlias.referenz_eid',
+      backref='emailadresse_object')
+
+  emailadresse_aliasse = association_proxy(
+      'emailadresse_alias_objects',
+      'emailadresse')
 
 
 class Verteiler(Emailadresse):
@@ -164,6 +175,15 @@ class EmailadresseAlias(Emailadresse):
       'polymorphic_identity': 'alias',
       'inherit_condition':Emailadresse.eid==eid}
 
+  def __init__(self, emailadresse_alias):
+    self.emailadresse = emailadresse_alias
+
+  def set_parent(self):
+    tmp = self.emailadresse
+    self.emailadresse = 'dummy@dummy.dummy'
+    orm.object_session(self).commit()
+    self.emailadresse = self.emailadresse_object.emailadresse
+    self.emailadresse_object.emailadresse = tmp
 
 class Benutzer(Emailadresse):
   __tablename__ = 'benutzer'
@@ -204,9 +224,12 @@ bv_objects = [
     Verteiler,
     Organisationseinheit]
 
+def initialize_sql(engine):
+    Base.metadata.bind = engine
+    Base.metadata.create_all(engine)
+
 if __name__ == '__main__':
   engine = sa.create_engine(PG, echo=True)
   Base.metadata.create_all(engine)
   Session = orm.sessionmaker(engine)
-  #Session = DBSession()
   session = Session()

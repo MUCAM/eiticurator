@@ -7,7 +7,7 @@ import ConfigParser
 import string
 
 import os
-DB_SETUP = 'db_setup.ini'
+DB_SETUP = 'db_default_setup.ini'
 this_dir, this_filename = os.path.split(__file__)
 DB_SETUP_PATH = os.path.join(this_dir, DB_SETUP)
 
