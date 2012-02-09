@@ -179,11 +179,20 @@ class EmailadresseAlias(Emailadresse):
     self.emailadresse = emailadresse_alias
 
   def set_parent(self):
-    tmp = self.emailadresse
-    self.emailadresse = 'dummy@dummy.dummy'
-    orm.object_session(self).commit()
-    self.emailadresse = self.emailadresse_object.emailadresse
-    self.emailadresse_object.emailadresse = tmp
+    session = orm.object_session(self)
+    tmp_alias = self.emailadresse
+    tmp_ref = self.emailadresse_object.emailadresse
+    self.emailadresse = self.emailadresse + '_tmp'
+    session.commit()
+    self.emailadresse_object.emailadresse = tmp_alias
+    self.emailadresse = tmp_ref
+    session.commit()
+
+  def __repr__(self):
+    return "%s(%r)" %(
+        self.__class__.__name__,
+        self.emailadresse)
+
 
 class Benutzer(Emailadresse):
   __tablename__ = 'benutzer'
@@ -214,6 +223,12 @@ class Benutzer(Emailadresse):
       backref='benutzer_object'
       )
 
+  def __repr__(self):
+    return "%s(%r)" %(
+        self.__class__.__name__,
+        self.nachname)
+
+
 bv_objects = [
     Benutzer,
     Domain,
@@ -229,7 +244,28 @@ def initialize_sql(engine):
     Base.metadata.create_all(engine)
 
 if __name__ == '__main__':
-  engine = sa.create_engine(PG, echo=True)
+  import datetime
+  engine = sa.create_engine('sqlite:///test.sqlite', echo=True)
   Base.metadata.create_all(engine)
   Session = orm.sessionmaker(engine)
   session = Session()
+
+  if False:
+    b = Benutzer(
+        emailadresse="philipp.rautenberg@mpisoc.mpg.de",
+        nachname="Rautenberg",
+        vorname="Philipp",
+        titel="",
+        raum="111",
+        telefon="",
+        fax="",
+        einrichtung="mpisoc",
+        abteilung="Verwaltung",
+        extern_erreichbar=True,
+        von=datetime.datetime.now(),
+        bis=datetime.datetime.now())
+    b.emailadresse_aliasse.append("p.rautenberg@mpisoc.mpg.de")
+    b.emailadresse_aliasse.append("p.r@mpisoc.mpg.de")
+
+  if True:
+    b = session.query(Benutzer).filter_by(nachname="Rautenberg").first()
