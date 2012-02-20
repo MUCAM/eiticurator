@@ -7,11 +7,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
 import datetime as dt
 
-from eiticurator import config
+from eiticurator import cc, Base
 
-Base = declarative_base()
 
-PG_SCHEMA = config['benutzerverwaltung.schema']
+PG_SCHEMA = cc.config['benutzerverwaltung.schema']
 
 if PG_SCHEMA == '':
   PG_SCHEMA = None
@@ -132,7 +131,8 @@ class Emailadresse(Base):
   emailadresse_alias_objects = orm.relationship(
       'EmailadresseAlias',
       primaryjoin='Emailadresse.eid==EmailadresseAlias.referenz_eid',
-      backref='emailadresse_object')
+      backref='emailadresse_object',
+      cascade="all, delete, delete-orphan")
 
   emailadresse_aliasse = association_proxy(
       'emailadresse_alias_objects',

@@ -1,4 +1,5 @@
 from core import Domain, Organisationseinheit
+DBSession = scoped_session(sessionmaker())
 
 def default_input(prompt, default_value, choices=None, closing_sign=":"):
   import readline

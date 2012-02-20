@@ -1,67 +1,8 @@
-import sqlalchemy as sa
-import sqlalchemy.orm as orm
-from sqlalchemy.ext.declarative import declarative_base
-import datetime as dt
-
-from eiticurator import Base, DBSession, engine
-from eiticurator.benutzerverwaltung.models import *
-from eiticurator.benutzerverwaltung.models import PG_SCHEMA, TB_PREFIX
-
-#####################
-# staff_data02_export
-#####################
-
-PG_ama = 'postgresql://postgres@data02/amalie'
-engine_ama = sa.create_engine(PG_ama, echo=True)
-
-class SyncUser(Base):
-  __tablename__ = "staff_data02_export"
-  __table_args__ = (
-      sa.PrimaryKeyConstraint('id', 'id'),
-      {
-      'autoload': True,
-      'autoload_with': engine_ama,
-      'schema': "admin",
-      })
-
-####################
-# Benutzerverwaltung
-####################
-
-class StaffData02Export_Benutzer_Abbildung(Base):
-  __tablename__ = "staff_data02_export_benutzer_abbildungen"
-  __table_args__ = (
-      {'schema': PG_SCHEMA,
-       })
-  id = sa.Column(
-      sa.Integer,
-      primary_key=True)
-  eid = sa.Column(
-      sa.Integer,
-      sa.ForeignKey(TB_PREFIX + 'emailadressen.eid'),
-      primary_key=True)
-
+from eiticurator.benutzerverwaltung.ext.mucam import *
 
 if __name__ == '__main__':
   # get ama data
-  binds = {}
-  [binds.update({bv_object:engine}) for bv_object in bv_objects]
-  binds[SyncUser] = engine_ama
-  binds[StaffData02Export_Benutzer_Abbildung] = engine
-  DBSession.configure(binds=binds)
-  bv_tables = []
-  Base.metadata.create_all(engine, [
-    StaffData02Export_Benutzer_Abbildung.__table__,
-    Benutzer.__table__,
-    Domain.__table__,
-    Emailadresse.__table__,
-    EmailadresseAlias.__table__,
-    Funktionskonto.__table__,
-    Konto.__table__,
-    konto_emailadresse_abbildungen,
-    Organisationseinheit.__table__,
-    Verteiler.__table__])
-  session = DBSession()
+  session = get_session()
   all_users = session.query(SyncUser).all()
  
   # anlegen: organisationseinheiten und domains
@@ -116,3 +57,16 @@ if __name__ == '__main__':
         )
       u.konto_object.append(k)
   session.commit()
+
+  all_aliasse = session.query(SyncAliasse).all()
+  for alias in all_aliasse:
+    try:
+      k = session.query(Konto).filter_by(uid=alias.uid).one()
+      k.emailadresse_objects[0].emailadresse_aliasse.append(alias.mail)
+      session.commit()
+    except sa.orm.exc.NoResultFound, e:
+      session.rollback()
+      print alias.uid, " kein Konto gefunden."
+    except sa.exceptions.IntegrityError, e:
+      session.rollback()
+      print alias.mail, " war wohl primary..."
