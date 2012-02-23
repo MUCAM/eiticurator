@@ -1,6 +1,4 @@
-SET search_path TO it_accounts;
-
-CREATE OR REPLACE VIEW info_benutzer AS
+create_info_benutzer = """CREATE VIEW info_benutzer AS
   SELECT
     benutzer.eid,
     nachname,
@@ -20,9 +18,9 @@ CREATE OR REPLACE VIEW info_benutzer AS
       benutzer
     INNER JOIN
       emailadressen
-    ON (benutzer.eid = emailadressen.eid);
+    ON (benutzer.eid = emailadressen.eid);"""
 
-CREATE VIEW info_benutzer_konten AS
+create_info_benutzer_konten = """CREATE VIEW info_benutzer_konten AS
   SELECT
     b.eid,
     k.uname,
@@ -51,4 +49,4 @@ CREATE VIEW info_benutzer_konten AS
     konten k,
     konto_emailadresse_abbildungen kea
   WHERE
-    b.eid = kea.eid AND k.uid = kea.uid;
+    b.eid = kea.eid AND k.uid = kea.uid;"""

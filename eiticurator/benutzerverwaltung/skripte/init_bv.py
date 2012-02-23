@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from eiticurator.benutzerverwaltung.ext.mucam import *
 
 if __name__ == '__main__':
@@ -55,14 +56,14 @@ if __name__ == '__main__':
         beschreibung = "",
         zombie_monate = 3 * int(u.abteilung=="Sozialrecht")
         )
-      u.konto_object.append(k)
+      u.konto_object = k
   session.commit()
 
   all_aliasse = session.query(SyncAliasse).all()
   for alias in all_aliasse:
     try:
       k = session.query(Konto).filter_by(uid=alias.uid).one()
-      k.emailadresse_objects[0].emailadresse_aliasse.append(alias.mail)
+      k.emailadresse_object.emailadresse_aliasse.append(alias.mail)
       session.commit()
     except sa.orm.exc.NoResultFound, e:
       session.rollback()
@@ -70,3 +71,18 @@ if __name__ == '__main__':
     except sa.exceptions.IntegrityError, e:
       session.rollback()
       print alias.mail, " war wohl primary..."
+
+  # Anlegen der views:
+  # Da in der aktuellen session meherer Engines hängen, ist es sinnvoll, eine
+  # komplett neue session aufzubauen:
+  from sqlalchemy.orm import sessionmaker
+  import eiticurator.benutzerverwaltung.sql.info_views as iv
+  engine = etc.get_engine()
+  Session = sessionmaker(bind=engine)
+  session = Session()
+  schema = cc.config['benutzerverwaltung.schema']
+  if schema not in  [None, '']:
+    session.execute('SET search_path TO %s;' %(schema)) 
+  session.execute(iv.create_info_benutzer)
+  session.execute(iv.create_info_benutzer_konten)
+  session.commit()

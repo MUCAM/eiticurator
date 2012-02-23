@@ -2,11 +2,10 @@
 Installation von ``eiticurator``
 ================================
 
-Die Installtion erfolgt in vier Schritten:
+Die Installtion erfolgt in zwei Schritten:
 
 * Vorbereiten des Systems
 * Installation des Quellcodes
-* 
 
 Systemvorbereitung
 ==================

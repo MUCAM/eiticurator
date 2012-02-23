@@ -12,7 +12,8 @@ Inhalt:
    :maxdepth: 2
 
    installation.rst
-   anwendung.rst
+   anwendung_benutzerverwaltung.rst
+   entwicklung.rst
 
 Indices and tables
 ==================
