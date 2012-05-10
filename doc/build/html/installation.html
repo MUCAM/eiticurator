@@ -1,0 +1,159 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation von eiticurator &mdash; eiticurator v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="eiticurator v0.1 documentation" href="index.html" />
+    <link rel="next" title="Anwendung der Benutzerverwaltung" href="anwendung_benutzerverwaltung.html" />
+    <link rel="prev" title="Willkommen zur Dokumentation von eiticurator" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="anwendung_benutzerverwaltung.html" title="Anwendung der Benutzerverwaltung"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Willkommen zur Dokumentation von eiticurator"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">eiticurator v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installation-von-eiticurator">
+<h1>Installation von <tt class="docutils literal"><span class="pre">eiticurator</span></tt><a class="headerlink" href="#installation-von-eiticurator" title="Permalink to this headline">¶</a></h1>
+<p>Die Installtion erfolgt in zwei Schritten:</p>
+<ul class="simple">
+<li>Vorbereiten des Systems</li>
+<li>Installation des Quellcodes</li>
+</ul>
+<div class="section" id="systemvorbereitung">
+<h2>Systemvorbereitung<a class="headerlink" href="#systemvorbereitung" title="Permalink to this headline">¶</a></h2>
+<p>Folgende Pakete müssen installiert sein:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">git</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">python</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">python-sqlalchemy</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">python-psycopg2</span></tt> (nur notwendig, wenn mit PostgrSQL gearbeitet wird)</li>
+</ul>
+<p>Debian-Basiert:</p>
+<div class="highlight-python"><pre>aptitude install git python python-sqlalchemy python-psycopg2</pre>
+</div>
+</div>
+<div class="section" id="installation-des-quellcodes">
+<h2>Installation des Quellcodes<a class="headerlink" href="#installation-des-quellcodes" title="Permalink to this headline">¶</a></h2>
+<p>Der Quellcode liegt auf github. Zur installation reicht folgender Befehl:</p>
+<div class="highlight-python"><pre>git clone https://phippo@github.com/MUCAM/eiticurator.git
+# oder
+git clone git@github.com:MUCAM/eiticurator.git</pre>
+</div>
+<p>Jetzt muss nur noch der Python-Path angepasst werden. Empfehlung: Da
+normalerweise Repositories nicht extra gesichert werden müssen (sie liegen ja
+schon auf einem Repository-Server redundant), kann man sie in einem extra
+Verzeichnis sammeln. Zur Verwaltung der user-spezifischen python-Bibliotheken
+legt man sich im Home-Verzeichnis ein Unterverzeichnis <tt class="docutils literal"><span class="pre">~/lib/python</span></tt> an (in der .bashrc: <tt class="docutils literal"><span class="pre">export</span> <span class="pre">PYTHONPATH=$PYTHONPATH:$HOME/lib/python</span></tt>) und
+verlinkt von dort auf die Repository:</p>
+<div class="highlight-python"><pre>mkdir ~/lib
+mkdir ~/lib/python
+mkdir ~/Repositories
+mkdir ~/Repositories/github
+cd ~/Repositories/github
+git clone git@github.com:MUCAM/eiticurator.git
+cd ~/lib/python
+ln -s ~/Repositories/github/eiticurator/eiticurator eiticurator</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation von <tt class="docutils literal"><span class="pre">eiticurator</span></tt></a><ul>
+<li><a class="reference internal" href="#systemvorbereitung">Systemvorbereitung</a></li>
+<li><a class="reference internal" href="#installation-des-quellcodes">Installation des Quellcodes</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Willkommen zur Dokumentation von <tt class="docutils literal docutils literal docutils literal"><span class="pre">eiticurator</span></tt></a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="anwendung_benutzerverwaltung.html"
+                        title="next chapter">Anwendung der Benutzerverwaltung</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/installation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="anwendung_benutzerverwaltung.html" title="Anwendung der Benutzerverwaltung"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Willkommen zur Dokumentation von eiticurator"
+             >previous</a> |</li>
+        <li><a href="index.html">eiticurator v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, MUCAM-IT.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
