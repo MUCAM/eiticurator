@@ -8,11 +8,11 @@ session = DBSession()
 TIME_FORMAT = "%d.%m.%Y"
 
 def getDistinctValues(attr):
-  einrichtungen = []
+  vals = []
   q = session.query(attr).distinct()
   for tupel in q.all():
-    einrichtungen.append(tupel[0].encode('utf-8'))
-  return einrichtungen
+    vals.append(tupel[0].encode('utf-8'))
+  return vals
 
 def getDomainNames():
   domains = session.query(Domain).all()
@@ -54,7 +54,9 @@ def inputUserDict():
       'von',
       dt.datetime.now().strftime(TIME_FORMAT),
       )
+  user_info['von'] = dt.datetime.strptime(user_info['von'], TIME_FORMAT)
   user_info['bis'] = raw_input('bis: ')
+  user_info['bis'] = dt.datetime.strptime(user_info['bis'], TIME_FORMAT)
   user_info['domain'] = default_input(
       'Domain',
       "",
@@ -79,8 +81,9 @@ def inputUserDict():
   user_info['check'] = default_input('Alles korrekt', "ja", None, "?")
   return user_info
 
-def addUser():
-  user_info = inputUserDict()
+def addUser(user_info=None):
+  if user_info == None:
+    user_info = inputUserDict()
   if user_info['check'].lower() in ['ja', 'yes', 'j', 'y']:
     b = Benutzer(
         nachname=user_info['nachname'],
@@ -90,9 +93,11 @@ def addUser():
         abteilung=user_info['abteilung'],
         funktion=user_info['funktion'],
         emailadresse=user_info['emailadresse'],
+        telefon=user_info['telefon'],
+        fax=user_info['fax'],
         raum=user_info['raum'],
-        von=dt.datetime.strptime(user_info['von'], TIME_FORMAT),
-        bis=dt.datetime.strptime(user_info['bis'], TIME_FORMAT))
+        von=user_info['von'],
+        bis=user_info['bis'])
     k = Konto(
         uid = user_info['uid'],
         uname = user_info['uname'],
@@ -104,10 +109,16 @@ def addUser():
     try:
       session.add(b)
       session.commit()
+      print "Benutzer %s %s (uname: %s) wurde erfolgreich angelegt! \n" %(
+          b.nachname,
+          b.vorname,
+          k.uname)
+      return b
     except Exception, e:
       print e
       session.rollback()
-      print "Rollback durchgeführt."
+      #print "\n >>>>> Rollback durchgeführt. <<<<<\n"
+      raise Exception('Abbruch, Rollback wurde noch durchgeführt!')
   else:
     print "\n >>> Abbruch <<<"
 

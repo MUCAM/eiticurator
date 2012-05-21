@@ -157,7 +157,7 @@ class Emailadresse(Base):
   eid = sa.Column(sa.Integer, primary_key=True)
   emailadresse = sa.Column(sa.String, unique=True, nullable=False)
   emailtyp = sa.Column(sa.String, nullable=False)
-  extern_erreichbar = sa.Column(sa.Boolean , nullable=False, default=False)
+  extern_erreichbar = sa.Column(sa.Boolean , nullable=False, default=True)
   __mapper_args__ = {'polymorphic_on': emailtyp}
 
   emailadresse_alias_objects = orm.relationship(
