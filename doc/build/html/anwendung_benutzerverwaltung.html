@@ -84,15 +84,15 @@ Vorname: Max
 Titel: ...</pre>
 </div>
 <p>Benutzer aus der Datenbank laden:</p>
-<div class="highlight-python"><pre>b = session.query(Benutzer).filter(Benutzer.nachname=="Mustermann")).one()
-print b</pre>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">b</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Benutzer</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Benutzer</span><span class="o">.</span><span class="n">nachname</span><span class="o">==</span><span class="s">&quot;Mustermann&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+<span class="k">print</span> <span class="n">b</span>
+</pre></div>
 </div>
 <p>Benutzer aus der Datenbank laden, Informationen anzeigen und deaktivieren:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">b</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Benutzer</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Benutzer</span><span class="o">.</span><span class="n">nachname</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;Raut%&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
-<span class="k">print</span> <span class="n">b</span>
-<span class="n">b</span><span class="o">.</span><span class="n">konto_object</span><span class="o">.</span><span class="n">aktiviert</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</pre></div>
+<div class="highlight-python"><pre>b = session.query(Benutzer).filter(Benutzer.nachname.like("Raut%").one()
+print b
+b.konto_object.aktiviert = False
+session.commit()</pre>
 </div>
 <p>Alle Benutzer einer Abteilung laden:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">benutzer_verwaltung</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Benutzer</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>

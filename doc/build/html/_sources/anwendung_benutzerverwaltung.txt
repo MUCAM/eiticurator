@@ -42,12 +42,12 @@ Benutzer mit Konto anlegen::
 
 Benutzer aus der Datenbank laden::
   
-  b = session.query(Benutzer).filter(Benutzer.nachname=="Mustermann")).one()
+  b = session.query(Benutzer).filter(Benutzer.nachname=="Mustermann").one()
   print b
 
 Benutzer aus der Datenbank laden, Informationen anzeigen und deaktivieren::
 
-  b = session.query(Benutzer).filter(Benutzer.nachname.like("Raut%")).one()
+  b = session.query(Benutzer).filter(Benutzer.nachname.like("Raut%").one()
   print b
   b.konto_object.aktiviert = False
   session.commit()
