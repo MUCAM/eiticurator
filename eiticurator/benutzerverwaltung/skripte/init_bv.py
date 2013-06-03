@@ -49,7 +49,8 @@ if __name__ == '__main__':
       k = Konto(
         uid = user.id,
         uname = user.user_name,
-        passwort_unix = "",
+        passwort_md5 = "",
+        passwort_des = "",
         aktiviert = True,
         oeinheit = oeinheit,
         domain = 'MUCAM',

@@ -152,7 +152,8 @@ def insert_neu_Mitarbeiter():
     k = Konto(
         uid = user.id,
         uname = uname,
-        passwort_unix = "",
+        passwort_md5 = "",
+        passwort_des = "",
         aktiviert = True,
         oeinheit = oeinheit,
         domain = 'MUCAM',

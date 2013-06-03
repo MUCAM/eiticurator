@@ -74,8 +74,9 @@ class Konto(Base):
 
   uid = sa.Column(sa.Integer, primary_key=True)
   uname = sa.Column(sa.String(20), unique=True, nullable=False)
-  passwort_unix = sa.Column(sa.String, nullable=False, default="***")
+  passwort_md5 = sa.Column(sa.String, nullable=False, default="***")
   passwort_pam = sa.Column(sa.String, nullable=False, default="***")
+  passwort_des = sa.Column(sa.String, nullable=False, default="***")
   aktiviert = sa.Column(sa.Boolean, nullable=False, default=False)
   oeinheit = sa.Column(sa.String, nullable=False)
   domain = sa.Column(sa.String, nullable=False)
